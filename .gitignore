@@ -1,0 +1,11 @@
+/src/install/
+/build/
+/install/
+/log/
+/src/build/
+/src/log/
+/.idea/
+/logs/
+*.db
+*.pyc
+__pycache__/
