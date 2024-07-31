@@ -76,15 +76,20 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.db_manager = DBManager()
         uic.loadUi(GUIConfig.main_ui_path, self)
+
+        self.is_wait = False
+        self.sequence_count = GUIConfig.sequence_cnt_reset
+
         self.node_thread = Thread(target=self.run_node)
         self.node_deamon = True
         self.node_thread.start()
         self.wait_thread = Thread(target=self.wait_drip)
+        self.wait_deamon = True
+        self.wait_thread.start()
 
         self.orderButton.clicked.connect(self.start_order)
         self.init_hide()
 
-        self.sequence_count = GUIConfig.sequence_cnt_reset
 
 
     def init_hide(self):
@@ -134,7 +139,7 @@ class MainWindow(QMainWindow):
         # print(res)
         if self.sequence_count == GUIConfig.drip_count:
             self.order_label_1.setText("커피를 내리고 있어요")
-            self.wait_thread.start()
+            self.is_wait = True
             self.sequence_count += 1
             return True
 
@@ -142,17 +147,24 @@ class MainWindow(QMainWindow):
         return False
 
     def wait_drip(self):
-        self.timer_label.show()
-        start_time = time.time()
-        current_time = time.time()
+        while self.wait_deamon:
+            if self.is_wait :
+                self.timer_label.show()
+                start_time = time.time()
+                current_time = time.time()
 
-        while current_time - start_time <= GUIConfig.wait_drip_time:
-            self.timer_label.setText(str(int(GUIConfig.wait_drip_time - current_time + start_time) // 60) + " : " + str(int(GUIConfig.wait_drip_time - current_time + start_time) % 60))
-            current_time = time.time()
-            time.sleep(0.3)
+                while current_time - start_time <= GUIConfig.wait_drip_time:
+                    self.timer_label.setText(str(int(GUIConfig.wait_drip_time - current_time + start_time) // 60) + " : " + str(int(GUIConfig.wait_drip_time - current_time + start_time) % 60))
+                    current_time = time.time()
+                    time.sleep(0.3)
 
-        self.timer_label.hide()
-        self.orderButton.click()
+                self.timer_label.hide()
+                self.orderButton.click()
+                self.is_wait = False
+            else:
+                time.sleep(0.3)
+            
+            
         
 
     def __del__(self):
