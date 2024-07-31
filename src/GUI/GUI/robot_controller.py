@@ -38,7 +38,7 @@ class RobotController(Node):
     def robot_service_call(self, data, seq_no) -> RobotService.Response:
         try:
             req = RobotService.Request()
-            req.cmd     = data["cmd"]
+            req.cmd = data["cmd"]
 
             if data['par1'] == None and data["cmd"] != "reset":
                 req = DispenseService.Request()
@@ -51,11 +51,11 @@ class RobotController(Node):
                 res = self.robot_client.call(request=req)
                 return res
             
-            req.par1    = data["par1"]
-            req.par2    = data["par2"]
-            req.par3    = data["par3"]
-            req.par4    = data["par4"]
-            req.par5    = data["par5"]
+            req.par1 = data["par1"]
+            req.par2 = data["par2"]
+            req.par3 = data["par3"]
+            req.par4 = data["par4"]
+            req.par5 = data["par5"]
 
             res = self.robot_client.call(request=req)
             return res
@@ -79,16 +79,18 @@ class MainWindow(QMainWindow):
         self.node_thread = Thread(target=self.run_node)
         self.node_deamon = True
         self.node_thread.start()
+        self.wait_thread = Thread(target=self.wait_drip)
 
         self.orderButton.clicked.connect(self.start_order)
         self.init_hide()
 
-        self.sequence_count = 1
+        self.sequence_count = GUIConfig.sequence_cnt_reset
 
 
     def init_hide(self):
         self.order_label_1.hide()
         self.progressBar_1.hide()
+        # self.timer_label.hide()
 
         
     def run_node(self):
@@ -109,17 +111,20 @@ class MainWindow(QMainWindow):
         self.progressBar_1.setMaximum(max_id)
         self.progressBar_1.show()
         self.order_label_1.show()
-        self.order_label_1.setText("음료를 준비중 입니다.")
+        self.order_label_1.setText("커피를 준비중 입니다.")
 
-        for i in range(0, max_id):
-            self.next_sequence()
+        for i in range(self.sequence_count, max_id):
+            is_drip = self.next_sequence()
             self.progressBar_1.setValue(i)
             time.sleep(0.3)
+            if is_drip:
+                return
 
-        self.order_label_1.setText("음료가 준비되었어요")
+        self.order_label_1.setText("커피가 준비되었어요")
         self.progressBar_1.setValue(max_id)
-        self.sequence_count = 1
+        self.sequence_count = GUIConfig.sequence_cnt_reset
         self.node.robot_service_call(NodeConfig.reset_data, None) # service call reset
+
 
     def next_sequence(self):
         data = self.db_manager.get_cammand(self.sequence_count)
@@ -127,7 +132,28 @@ class MainWindow(QMainWindow):
             return
         res = self.node.robot_service_call(data, self.sequence_count)
         # print(res)
+        if self.sequence_count == GUIConfig.drip_count:
+            self.order_label_1.setText("커피를 내리고 있어요")
+            self.wait_thread.start()
+            self.sequence_count += 1
+            return True
+
         self.sequence_count += 1
+        return False
+
+    def wait_drip(self):
+        self.timer_label.show()
+        start_time = time.time()
+        current_time = time.time()
+
+        while current_time - start_time <= GUIConfig.wait_drip_time:
+            self.timer_label.setText(str(int(GUIConfig.wait_drip_time - current_time + start_time) // 60) + " : " + str(int(GUIConfig.wait_drip_time - current_time + start_time) % 60))
+            current_time = time.time()
+            time.sleep(0.3)
+
+        self.timer_label.hide()
+        self.orderButton.click()
+        
 
     def __del__(self):
         self.node_deamon = False

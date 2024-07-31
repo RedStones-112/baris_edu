@@ -8,14 +8,17 @@ class NodeConfig():
 
 class GUIConfig():
     gui_name = "Main_ui"
-    current_file_path = os.path.abspath(__file__)
-    current_directory = os.path.dirname(current_file_path)
-    parent_directory = os.path.dirname(current_directory)
-    main_ui_path = "/home/rds/baris_drip_academy/ui/main_window.ui"
+    current_file_path   = os.path.abspath(__file__)
+    current_directory   = os.path.dirname(current_file_path)
+    parent_directory    = os.path.dirname(current_directory)
+    main_ui_path        = "/home/rds/baris_edu/ui/main_window.ui"
+    wait_drip_time      = 150
+    drip_count          = 16
+    sequence_cnt_reset  = 1
 
 
 class DBConfig():
-    db_path = "/home/rds/baris_drip_academy/test.db"
+    db_path = "/home/rds/baris_edu/test.db"
     
     base_data = [{"cmd" : "HOME_NORMAL",     "par1" : "0",   "par2" : "0",   "par3" : "0",   "par4" : "0",   "par5" : "0"},
                 {"cmd" : "GRIPPER_INIT",    "par1" : "0",   "par2" : "0",   "par3" : "0",   "par4" : "0",   "par5" : "0"},
@@ -46,3 +49,4 @@ class DBConfig():
     create_table_query  = """CREATE TABLE robot_command_list (id INTEGER PRIMARY KEY AUTOINCREMENT, cmd TEXT, par1 TEXT     par2 TEXT   par3 TEXT   par4 TEXT   par5 TEXT);"""
     all_data_query      = """SELECT * FROM robot_command_list;"""
     max_id_query        = """SELECT MAX(id) FROM robot_command_list"""
+    
